@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="pt">
+    <head>
+        <meta charset="utf-8">
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Controle de Estoque</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    </head>
+    <body>
+        <div class="container mt-5">
+            <h1 class="text-center mb-4">Controle de Estoque</h1>
+            
+            <!-- Formulário para adicionar item -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5>Adicionar Novo Item</h5>
+                </div>
+                <div class="card-body">
+                    <form id="formItem">
+                        <div class="form-group">
+                            <label>Nome do Item:</label>
+                            <input type="text" class="form-control" name="nome" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantidade:</label>
+                            <input type="number" class="form-control" name="quantidade" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Descrição:</label>
+                            <input type="text" class="form-control" name="descricao" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Fornecedor:</label>
+                            <input type="text" class="form-control" name="fornecedor" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status:</label>
+                            <select class="form-control" name="status" required>
+                                <option value="Cheio">Cheio</option>
+                                <option value="Metade">Metade</option>
+                                <option value="Baixo">Baixo</option>
+                                <option value="Esgotado">Esgotado</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Adicionar Item</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Tabela de itens -->
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nome</th>
+                            <th>Quantidade</th>
+                            <th>Descrição</th>
+                            <th>Fornecedor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaItens">
+                        <!-- Os itens serão carregados aqui -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <script>
+            // Função para carregar os itens
+            function carregarItens() {
+                fetch('/itens')
+                    .then(response => response.json())
+                    .then(itens => {
+                        const tabela = document.getElementById('tabelaItens');
+                        tabela.innerHTML = '';
+                        
+                        itens.forEach(item => {
+                            tabela.innerHTML += `
+                                <tr>
+                                    <td>${item.idInsumo}</td>
+                                    <td>${item.nomeInsumo}</td>
+                                    <td>${item.QtdInsumo}</td>
+                                    <td>${item.descricaoInsumo}</td>
+                                    <td>${item.fornecedor}</td>
+                                    <td>${item.Status}</td>
+                                    <td>
+                                        <button class="btn btn-danger btn-sm" onclick="excluirItem(${item.idInsumo})">
+                                            Excluir
+                                        </button>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    });
+            }
+
+            // Função para adicionar item
+            document.getElementById('formItem').addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                
+                fetch('/itens', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(result => {
+                    alert(result.mensagem);
+                    this.reset();
+                    carregarItens();
+                })
+                .catch(error => {
+                    alert('Erro ao adicionar item');
+                });
+            });
+
+            // Função para excluir item
+            function excluirItem(id) {
+                if (confirm('Tem certeza que deseja excluir este item?')) {
+                    fetch(`/itens/${id}`, {
+                        method: 'DELETE'
+                    })
+                    .then(response => response.json())
+                    .then(result => {
+                        alert(result.mensagem);
+                        carregarItens();
+                    })
+                    .catch(error => {
+                        alert('Erro ao excluir item');
+                    });
+                }
+            }
+
+            // Carregar itens quando a página abrir
+            carregarItens();
+        </script>
+    </body>
+</html>
